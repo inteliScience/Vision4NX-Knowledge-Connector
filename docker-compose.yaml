@@ -6,6 +6,10 @@ services:
       - "8600:8600"
     env_file: .env
     restart: unless-stopped
+    # lets OPENWEBUI_URL=http://host.docker.internal reach the host's nginx
+    # (auto on Docker Desktop; this line is what makes it work on Linux)
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
 # To attach to the visionChatbot compose stack instead of exposing a host port:
 # (verify the network name with `docker network ls`)

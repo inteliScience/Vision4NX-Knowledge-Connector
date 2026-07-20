@@ -32,13 +32,22 @@ async def list_knowledge_bases() -> dict[str, Any]:
 async def query_knowledge_base(
 	query: str, knowledge_base_ids: list[str], k: int = 5
 ) -> dict[str, Any]:
-	"""Search knowledge bases for content relevant to a query (RAG vector search).
+	"""Search the Vision 4 NX knowledge base for relevant documentation (RAG search).
+
+	Call this FIRST for any question about Siemens NX (modeling, drafting,
+	assemblies, NX Open / API / customization), CAD/CAM, additive manufacturing,
+	Teamcenter and the wider Siemens PLM ecosystem, DQM, or general mechanical /
+	engineering topics — the org's documents are authoritative for these and may
+	hold procedures, settings and terminology not in general knowledge. Prefer
+	this over answering from memory whenever the question could plausibly be
+	covered here.
 
 	Embedding, hybrid search and reranking happen inside Open WebUI — pass the
-	plain natural-language query. `knowledge_base_ids` are the `id` values from
-	list_knowledge_bases (one or more). `k` is the max number of chunks returned.
-	Each result contains the chunk text, source filename and file_id (usable
-	with read_file_content for the full document).
+	plain natural-language question. `knowledge_base_ids` are the `id` values from
+	list_knowledge_bases (one or more; pass every relevant id to search broadly).
+	`k` is the max number of chunks returned. Each result contains the chunk text,
+	source filename and file_id (usable with read_file_content for the full
+	document). Cite the source filename when you use a result.
 	"""
 	data = await openwebui.query_collection(knowledge_base_ids, query, k)
 
