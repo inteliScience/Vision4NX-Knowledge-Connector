@@ -81,13 +81,14 @@ async def list_knowledge_base_files(knowledge_base_id: str) -> dict[str, Any]:
 	names and metadata; use a file's `id` with read_file_content.
 	"""
 	kb = await openwebui.get_knowledge_base(knowledge_base_id)
+	raw_files = await openwebui.list_kb_files(knowledge_base_id)
 	files = []
-	for f in kb.get("files") or []:
-		meta = f.get("meta") or {}  # filename lives in meta.name, not top-level
+	for f in raw_files:
+		meta = f.get("meta") or {}
 		files.append(
 			{
 				"id": f.get("id"),
-				"name": meta.get("name"),
+				"name": f.get("filename") or meta.get("name"),  # top-level filename in this fork
 				"size": meta.get("size"),
 				"content_type": meta.get("content_type"),
 				"updated_at": f.get("updated_at"),

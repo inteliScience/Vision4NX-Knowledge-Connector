@@ -88,7 +88,25 @@ async def query_collection(collection_names: list[str], query: str, k: int) -> d
 
 
 async def get_knowledge_base(knowledge_id: str) -> dict[str, Any]:
+	# note: this endpoint's `files` field is null in the fork — use list_kb_files for files
 	return await _request("GET", f"/api/v1/knowledge/{knowledge_id}")
+
+
+async def list_kb_files(knowledge_id: str) -> list[dict[str, Any]]:
+	# GET /api/v1/knowledge/{id}/files is paginated ({items, total}, 30/page)
+	items: list[dict[str, Any]] = []
+	page = 1
+	while True:
+		data = await _request(
+			"GET", f"/api/v1/knowledge/{knowledge_id}/files", params={"page": page}
+		)
+		if isinstance(data, list):  # fallback for an unpaginated shape
+			return data
+		items.extend(data.get("items") or [])
+		total = data.get("total", len(items))
+		if len(items) >= total or not data.get("items"):
+			return items
+		page += 1
 
 
 async def get_file_content(file_id: str) -> dict[str, Any]:
