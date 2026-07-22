@@ -8,9 +8,9 @@ log = logging.getLogger(__name__)
 class Settings(BaseSettings):
 	model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
-	# Open WebUI / Vision 4 NX instance the tools talk to
-	openwebui_url: str = ""  # e.g. http://localhost:3000 — required at startup
-	openwebui_api_key: str = ""  # user API key (sk-...) — required at startup
+	# Vision 4 NX instance the tools talk to
+	vision4nx_url: str = ""  # base URL — required at startup
+	vision4nx_api_key: str = ""  # service access token — required at startup
 
 	# MCP server bind
 	mcp_host: str = "0.0.0.0"
@@ -26,14 +26,14 @@ class Settings(BaseSettings):
 		missing = [
 			name
 			for name, value in (
-				("OPENWEBUI_URL", self.openwebui_url),
-				("OPENWEBUI_API_KEY", self.openwebui_api_key),
+				("VISION4NX_URL", self.vision4nx_url),
+				("VISION4NX_API_KEY", self.vision4nx_api_key),
 			)
 			if not value.strip()
 		]
 		if missing:
 			raise SystemExit(f"Missing required environment variables: {', '.join(missing)}")
-		self.openwebui_url = self.openwebui_url.rstrip("/")
+		self.vision4nx_url = self.vision4nx_url.rstrip("/")
 
 
 settings = Settings()

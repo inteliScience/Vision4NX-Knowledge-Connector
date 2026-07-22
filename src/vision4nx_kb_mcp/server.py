@@ -5,7 +5,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from . import tools
-from .auth import AuthStubMiddleware, warn_if_stubbed
+from .auth import ClientAuthMiddleware
 from .config import settings
 
 logging.basicConfig(level=settings.log_level.upper())
@@ -53,9 +53,8 @@ async def health(_: Request) -> JSONResponse:
 
 def create_app():
 	settings.validate_at_startup()
-	warn_if_stubbed()
 	app = mcp.streamable_http_app()
-	app.add_middleware(AuthStubMiddleware)
+	app.add_middleware(ClientAuthMiddleware)
 	return app
 
 

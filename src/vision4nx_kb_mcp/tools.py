@@ -6,7 +6,7 @@ avoid an import cycle. Docstrings become the tool descriptions the LLM sees.
 
 from typing import Any
 
-from . import openwebui
+from . import vision4nx
 
 
 async def list_knowledge_bases() -> dict[str, Any]:
@@ -15,7 +15,7 @@ async def list_knowledge_bases() -> dict[str, Any]:
 	Returns each knowledge base's id, name and description. Use the `id` values
 	with query_knowledge_base and list_knowledge_base_files.
 	"""
-	kbs = await openwebui.list_knowledge_bases()
+	kbs = await vision4nx.list_knowledge_bases()
 	return {
 		"knowledge_bases": [
 			{
@@ -42,14 +42,14 @@ async def query_knowledge_base(
 	this over answering from memory whenever the question could plausibly be
 	covered here.
 
-	Embedding, hybrid search and reranking happen inside Open WebUI — pass the
+	Embedding, hybrid search and reranking happen server-side — pass the
 	plain natural-language question. `knowledge_base_ids` are the `id` values from
 	list_knowledge_bases (one or more; pass every relevant id to search broadly).
 	`k` is the max number of chunks returned. Each result contains the chunk text,
 	source filename and file_id (usable with read_file_content for the full
 	document). Cite the source filename when you use a result.
 	"""
-	data = await openwebui.query_collection(knowledge_base_ids, query, k)
+	data = await vision4nx.query_collection(knowledge_base_ids, query, k)
 
 	# response is ChromaDB-style nested lists: one inner list per query (we send one)
 	documents = (data.get("documents") or [[]])[0]
@@ -89,8 +89,8 @@ async def list_knowledge_base_files(knowledge_base_id: str) -> dict[str, Any]:
 	`knowledge_base_id` is an `id` from list_knowledge_bases. Returns file ids,
 	names and metadata; use a file's `id` with read_file_content.
 	"""
-	kb = await openwebui.get_knowledge_base(knowledge_base_id)
-	raw_files = await openwebui.list_kb_files(knowledge_base_id)
+	kb = await vision4nx.get_knowledge_base(knowledge_base_id)
+	raw_files = await vision4nx.list_kb_files(knowledge_base_id)
 	files = []
 	for f in raw_files:
 		meta = f.get("meta") or {}
@@ -121,7 +121,7 @@ async def read_file_content(file_id: str, max_chars: int = 50000) -> dict[str, A
 	Content longer than `max_chars` is truncated (truncated=true); call again
 	with a larger max_chars if you need the rest.
 	"""
-	data = await openwebui.get_file_content(file_id)
+	data = await vision4nx.get_file_content(file_id)
 	content = data.get("content") or ""
 	truncated = len(content) > max_chars
 	return {

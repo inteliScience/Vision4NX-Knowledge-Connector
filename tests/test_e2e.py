@@ -1,5 +1,5 @@
 """Opt-in e2e test against a RUNNING MCP server (which itself needs a running
-Open WebUI instance with a valid API key).
+Vision 4 NX instance with a valid access token).
 
     MCP_SERVER_URL=http://localhost:8600/mcp pytest tests/test_e2e.py
 """

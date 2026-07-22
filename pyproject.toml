@@ -1,10 +1,10 @@
 [project]
 name = "vision4nx-kb-mcp"
 version = "0.1.0"
-description = "MCP server (streamable HTTP) exposing the Vision 4 NX / Open WebUI knowledge base as tools"
+description = "MCP server (streamable HTTP) exposing the Vision 4 NX knowledge base as tools"
 requires-python = ">=3.11"
 dependencies = [
-	# same SDK family as the Open WebUI 0.8.5 backend (pins mcp==1.26.0)
+	# matches the Vision 4 NX backend SDK (pins mcp==1.26.0)
 	"mcp>=1.26.0,<2",
 	"httpx>=0.28",
 	"uvicorn>=0.30",

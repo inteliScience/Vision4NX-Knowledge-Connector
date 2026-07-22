@@ -1,4 +1,5 @@
 .env
+INTERNAL_DEVELOPER_NOTES.md
 .venv/
 __pycache__/
 *.pyc

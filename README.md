@@ -1,16 +1,12 @@
 # vision4nx-kb-mcp
 
-MCP server (streamable HTTP) that exposes the **Vision 4 NX / Open WebUI knowledge base** to any MCP client (Claude Code, Claude Desktop, Open WebUI's own MCP client support, ...).
+MCP server (streamable HTTP) that exposes the **Vision 4 NX knowledge base** to any MCP client (Claude Code, Claude Desktop, and other MCP-capable clients).
 
-It is a thin wrapper over the Open WebUI REST API — embedding, hybrid search and reranking all happen **inside Open WebUI**, so this server needs no vector-DB access and no embedding model.
-
-> ⚠️ **CLIENT AUTH IS STUBBED.** Every request to this MCP server is accepted.
-> The seam for real auth is `src/vision4nx_kb_mcp/auth.py` (`verify_request()`).
-> Do not expose this server beyond a trusted network until that is implemented.
+It is a thin wrapper over the Vision 4 NX REST API — embedding, hybrid search and reranking all happen **server-side**, so this server needs no vector-DB access and no embedding model.
 
 ## Tools
 
-| Tool | What it does | Open WebUI endpoint |
+| Tool | What it does | Vision 4 NX endpoint |
 |---|---|---|
 | `list_knowledge_bases()` | List accessible KBs (id, name, description) | `GET /api/v1/knowledge/` (paginated) |
 | `query_knowledge_base(query, knowledge_base_ids, k=5)` | RAG vector search; returns relevant chunks with source file info | `POST /api/v1/retrieval/query/collection` |
@@ -19,22 +15,22 @@ It is a thin wrapper over the Open WebUI REST API — embedding, hybrid search a
 
 ## Setup
 
-### 1. Get an Open WebUI API key
+### 1. Get your access credentials
 
-In Open WebUI: **Settings → Account → API Keys → Create new key** (`sk-...`).
+The `VISION4NX_URL` and `VISION4NX_API_KEY` for the Vision 4 NX instance are
+issued on request. Contact the Inteliscience team at **info@inteliscience.net**
+to obtain them.
 
-Requirements on the Open WebUI side:
-- `ENABLE_API_KEYS` must be enabled (Admin Settings → General).
-- The user needs the `features.api_keys` permission.
-- If you get **403** errors: `ENABLE_API_KEYS_ENDPOINT_RESTRICTIONS` is on and the endpoints above are missing from `API_KEYS_ALLOWED_ENDPOINTS`.
-- **404** on existing resources usually means the API-key user has no read access to that knowledge base (grant access in the KB's sharing settings).
+The MCP server acts with this single service key — all clients share the KB
+permissions granted to it.
 
-The MCP server acts with this single service key — all clients share that user's KB permissions.
+If tools return **403** or **404** errors, the access token may be missing
+permissions for a knowledge base — contact Inteliscience to have it adjusted.
 
 ### 2. Configure
 
 ```bash
-cp .env.example .env   # set OPENWEBUI_URL and OPENWEBUI_API_KEY
+cp .env.example .env   # set VISION4NX_URL and VISION4NX_API_KEY (from Inteliscience)
 ```
 
 ### 3. Run
@@ -62,7 +58,7 @@ MCP endpoint: `http://localhost:8600/mcp`
 claude mcp add --transport http vision4nx-kb http://localhost:8600/mcp
 ```
 
-**Open WebUI itself** (use the KB tools from chats): Admin Settings → External Tools → add a tool server of type **MCP** with URL `http://localhost:8600/mcp` (from inside the compose stack: the container-network URL).
+**Vision 4 NX itself** (use the KB tools from chats): Admin Settings → External Tools → add a tool server of type **MCP** with URL `http://localhost:8600/mcp` (from inside the compose stack: the container-network URL).
 
 **MCP Inspector** (debugging):
 ```bash
@@ -72,14 +68,14 @@ npx @modelcontextprotocol/inspector
 
 ## Deploying next to the Vision 4 NX stack
 
-Uncomment the `networks` block in `docker-compose.yaml`, verify the network name (`docker network ls`), and point `OPENWEBUI_URL` at the app container (`http://vision4nx:8080`). Optionally drop the published port and proxy `/mcp` through the existing nginx instead — but only after implementing real client auth.
+Uncomment the `networks` block in `docker-compose.yaml`, verify the network name (`docker network ls`), and point `VISION4NX_URL` at the app container (`http://vision4nx:8080`). Optionally drop the published port and proxy `/mcp` through the existing nginx instead.
 
 ## Environment variables
 
 | Var | Default | Purpose |
 |---|---|---|
-| `OPENWEBUI_URL` | — (required) | Base URL of the Open WebUI instance |
-| `OPENWEBUI_API_KEY` | — (required) | Service API key (`sk-...`) |
+| `VISION4NX_URL` | — (required) | Base URL of the Vision 4 NX instance (issued by Inteliscience) |
+| `VISION4NX_API_KEY` | — (required) | Service access token (issued by Inteliscience — info@inteliscience.net) |
 | `MCP_HOST` / `MCP_PORT` | `0.0.0.0` / `8600` | Server bind |
 | `MCP_AUTH_TOKEN` | empty | Reserved for future client auth — currently ignored |
 | `LOG_LEVEL` | `INFO` | Logging level |
@@ -94,4 +90,4 @@ MCP_SERVER_URL=http://localhost:8600/mcp pytest tests/test_e2e.py
 
 ## Compatibility
 
-Built against **Open WebUI 0.8.5** (the Vision 4 NX fork), which paginates `GET /api/v1/knowledge/` and pins `mcp==1.26.0`. The paginated-list handling falls back to the upstream unpaginated shape automatically.
+Built against the Vision 4 NX backend, which paginates `GET /api/v1/knowledge/` and pins `mcp==1.26.0`. The paginated-list handling falls back to an unpaginated response shape automatically.
