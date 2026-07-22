@@ -53,12 +53,44 @@ MCP endpoint: `http://localhost:8600/mcp`
 
 ## Connecting clients
 
+This server speaks **streamable HTTP** at `http://localhost:8600/mcp`. Clients
+that support HTTP/remote MCP connect to that URL directly; stdio-only clients
+need the `mcp-remote` bridge (shown below). No auth token is required — client
+auth is not enforced by this server.
+
 **Claude Code:**
 ```bash
 claude mcp add --transport http vision4nx-kb http://localhost:8600/mcp
 ```
 
+**Claude Desktop:** two ways, depending on your version.
+
+- *Custom connector (if available):* Settings → Connectors → **Add custom
+  connector**, name it `Vision 4 NX KB`, URL `http://localhost:8600/mcp`, save
+  and enable.
+- *Config file (works everywhere, needs Node.js):* the desktop config only
+  launches stdio commands, so bridge the HTTP endpoint with `mcp-remote`. Edit
+  `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or
+  `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
+  ```json
+  {
+    "mcpServers": {
+      "vision4nx-kb": {
+        "command": "npx",
+        "args": ["-y", "mcp-remote", "http://localhost:8600/mcp"]
+      }
+    }
+  }
+  ```
+  Then fully quit and reopen Claude Desktop (Cmd+Q / quit from the tray — closing
+  the window is not enough).
+
 **Vision 4 NX itself** (use the KB tools from chats): Admin Settings → External Tools → add a tool server of type **MCP** with URL `http://localhost:8600/mcp` (from inside the compose stack: the container-network URL).
+
+**Any other MCP client:** point it at `http://localhost:8600/mcp` with transport
+**Streamable HTTP**. If the client only supports stdio, wrap it the same way
+Claude Desktop's config file does:
+`npx -y mcp-remote http://localhost:8600/mcp`.
 
 **MCP Inspector** (debugging):
 ```bash
