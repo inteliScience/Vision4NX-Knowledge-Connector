@@ -7,6 +7,7 @@ avoid an import cycle. Docstrings become the tool descriptions the LLM sees.
 from typing import Any
 
 from . import vision4nx
+from .config import settings
 
 
 async def list_knowledge_bases() -> dict[str, Any]:
@@ -30,7 +31,7 @@ async def list_knowledge_bases() -> dict[str, Any]:
 
 
 async def query_knowledge_base(
-	query: str, knowledge_base_ids: list[str], k: int = 5
+	query: str, knowledge_base_ids: list[str], max_results: int = 8
 ) -> dict[str, Any]:
 	"""Search the Vision 4 NX knowledge base for relevant documentation (RAG search).
 
@@ -43,13 +44,27 @@ async def query_knowledge_base(
 	covered here.
 
 	Embedding, hybrid search and reranking happen server-side — pass the
-	plain natural-language question. `knowledge_base_ids` are the `id` values from
-	list_knowledge_bases (one or more; pass every relevant id to search broadly).
-	`k` is the max number of chunks returned. Each result contains the chunk text,
-	source filename and file_id (usable with read_file_content for the full
-	document). Cite the source filename when you use a result.
+	plain natural-language question. Exact identifiers (UF_* function names,
+	UGII_* variables, NXSM_* defaults) work well as queries too; lexical matching
+	is enabled server-side.
+
+	`knowledge_base_ids` are the `id` values from list_knowledge_bases (one or
+	more; pass every relevant id to search broadly).
+
+	`max_results` is how many chunks come back, reranked from a much wider
+	candidate pool. Raise it (20-30) for broad or exhaustive questions — "which
+	functions do X", "list every setting that ..." — where the answer is spread
+	over many documents; the default suits a single focused lookup.
+
+	Each result contains the chunk text, source filename and file_id (usable with
+	read_file_content for the full document). Cite the source filename when you
+	use a result.
 	"""
-	data = await vision4nx.query_collection(knowledge_base_ids, query, k)
+	# The server treats an explicit `k` as the candidate pool AND as an override of
+	# its own configured TOP_K, so it has to be the wide value; max_results is passed
+	# separately as the post-rerank cut.
+	pool = max(settings.retrieval_candidate_pool, max_results)
+	data = await vision4nx.query_collection(knowledge_base_ids, query, pool, max_results)
 
 	# response is ChromaDB-style nested lists: one inner list per query (we send one)
 	documents = (data.get("documents") or [[]])[0]
@@ -70,6 +85,10 @@ async def query_knowledge_base(
 		if i < len(distances) and distances[i] is not None:
 			result["relevance"] = round(distances[i], 4)
 		results.append(result)
+
+	# On instances without hybrid search the server ignores k_reranker and honours only
+	# `k`, so it would hand back the whole pool. Results arrive sorted best-first.
+	results = results[:max_results]
 
 	if not results:
 		return {
