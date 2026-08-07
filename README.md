@@ -9,7 +9,7 @@ It is a thin wrapper over the Vision 4 NX REST API — embedding, hybrid search 
 | Tool | What it does | Vision 4 NX endpoint |
 |---|---|---|
 | `list_knowledge_bases()` | List accessible KBs (id, name, description) | `GET /api/v1/knowledge/` (paginated) |
-| `query_knowledge_base(query, knowledge_base_ids, k=5)` | RAG vector search; returns relevant chunks with source file info | `POST /api/v1/retrieval/query/collection` |
+| `query_knowledge_base(query, knowledge_base_ids, max_results=8)` | RAG hybrid search; returns reranked chunks with source file info | `POST /api/v1/retrieval/query/collection` |
 | `list_knowledge_base_files(knowledge_base_id)` | Files inside one KB | `GET /api/v1/knowledge/{id}` |
 | `read_file_content(file_id, max_chars=50000)` | Full extracted text of a file | `GET /api/v1/files/{id}/data/content` |
 
@@ -108,6 +108,7 @@ Uncomment the `networks` block in `docker-compose.yaml`, verify the network name
 |---|---|---|
 | `VISION4NX_URL` | — (required) | Base URL of the Vision 4 NX instance (issued by Inteliscience) |
 | `VISION4NX_API_KEY` | — (required) | Service access token (issued by Inteliscience — info@inteliscience.net) |
+| `RETRIEVAL_CANDIDATE_POOL` | `40` | Chunks retrieved per collection before reranking. Sent as the API's `k`; `max_results` is sent as `k_reranker` and bounds what comes back. Only bites on instances with hybrid search + a reranker configured |
 | `MCP_HOST` / `MCP_PORT` | `0.0.0.0` / `8600` | Server bind |
 | `MCP_AUTH_TOKEN` | empty | Reserved for future client auth — currently ignored |
 | `LOG_LEVEL` | `INFO` | Logging level |

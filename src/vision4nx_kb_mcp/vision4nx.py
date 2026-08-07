@@ -79,11 +79,22 @@ async def list_knowledge_bases() -> list[dict[str, Any]]:
 		page += 1
 
 
-async def query_collection(collection_names: list[str], query: str, k: int) -> dict[str, Any]:
+async def query_collection(
+	collection_names: list[str], query: str, k: int, k_reranker: int
+) -> dict[str, Any]:
+	# `k` is the candidate pool the server retrieves per collection, `k_reranker` is how
+	# many survive reranking. Sending `k` at all overrides the instance's configured
+	# TOP_K, so it must be the wide pool value — sending the desired result count here
+	# starves the reranker instead of limiting it.
 	return await _request(
 		"POST",
 		"/api/v1/retrieval/query/collection",
-		json={"collection_names": collection_names, "query": query, "k": k},
+		json={
+			"collection_names": collection_names,
+			"query": query,
+			"k": k,
+			"k_reranker": k_reranker,
+		},
 	)
 
 

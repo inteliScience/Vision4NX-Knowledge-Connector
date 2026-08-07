@@ -12,6 +12,11 @@ class Settings(BaseSettings):
 	vision4nx_url: str = ""  # base URL — required at startup
 	vision4nx_api_key: str = ""  # service access token — required at startup
 
+	# How many candidate chunks the Vision 4 NX side retrieves before reranking.
+	# Wider pool = better reranked results; the caller's max_results still bounds
+	# what comes back. Only meaningful on instances with hybrid search + a reranker.
+	retrieval_candidate_pool: int = 40
+
 	# MCP server bind
 	mcp_host: str = "0.0.0.0"
 	mcp_port: int = 8600
