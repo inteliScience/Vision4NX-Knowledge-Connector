@@ -15,7 +15,27 @@ It is a thin wrapper over the Vision 4 NX REST API — embedding, hybrid search 
 
 ## Setup
 
-### 1. Get your access credentials
+### 0. Prerequisites
+
+Either of:
+
+- **Docker** — Docker Desktop (macOS/Windows) or Docker Engine (Linux) with
+  Compose v2. Check with `docker compose version`; if only `docker-compose`
+  (with a hyphen) works, the install is too old — upgrade, or substitute
+  `docker-compose` in the commands below.
+- **Python 3.11+** if you'd rather run it without Docker.
+
+### 1. Get the code
+
+```bash
+git clone https://github.com/inteliScience/Vision4NX-Knowledge-Connector.git
+cd Vision4NX-Knowledge-Connector
+```
+
+Every command in this README is run from that directory — it's the one holding
+`docker-compose.yaml`.
+
+### 2. Get your access credentials
 
 The `VISION4NX_URL` and `VISION4NX_API_KEY` for the Vision 4 NX instance are
 issued on request. Contact the Inteliscience team at **info@inteliscience.net**
@@ -27,17 +47,21 @@ permissions granted to it.
 If tools return **403** or **404** errors, the access token may be missing
 permissions for a knowledge base — contact Inteliscience to have it adjusted.
 
-### 2. Configure
+### 3. Configure
 
 ```bash
 cp .env.example .env   # set VISION4NX_URL and VISION4NX_API_KEY (from Inteliscience)
 ```
 
-### 3. Run
+Both are required. The server refuses to start without them, and Compose won't
+even build if `.env` is missing entirely.
 
-**Docker (recommended):**
+### 4. Run
+
+**Docker (recommended)** — from the repo root:
 ```bash
 docker compose up -d --build
+docker compose logs -f    # first run: confirm it actually came up
 ```
 
 **Plain Python (>=3.11):**
@@ -50,6 +74,27 @@ python3.12 -m venv .venv
 
 Health check: `curl http://localhost:8600/health`
 MCP endpoint: `http://localhost:8600/mcp`
+
+### Troubleshooting
+
+`docker compose up -d` reports success even when the container crashes a second
+later, so check the logs before anything else:
+
+```bash
+docker compose ps        # STATUS "Restarting" = it's crash-looping
+docker compose logs -f
+```
+
+| Symptom | Cause |
+|---|---|
+| `env file .../.env not found` | Step 3 was skipped — `cp .env.example .env` |
+| Container restarts forever, log says `Missing required environment variables: ...` | `VISION4NX_URL` / `VISION4NX_API_KEY` are empty in `.env`. `restart: unless-stopped` retries the crash, so `up -d` looks like it worked |
+| `docker: 'compose' is not a docker command` | Compose v1 — use `docker-compose up -d --build` or upgrade Docker |
+| Connection refused on `localhost:8600` | Server isn't up; see the two rows above |
+| Tools return 403 / 404 | Token lacks permissions for that KB — contact Inteliscience |
+
+After editing `.env`, restart to pick it up: `docker compose up -d`
+(`--build` is only needed when the code changes).
 
 ## Connecting clients
 
