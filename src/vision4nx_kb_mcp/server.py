@@ -5,7 +5,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from . import tools
-from .auth import ClientAuthMiddleware
+from .auth import ClientAuthMiddleware, log_auth_mode
 from .config import settings
 
 logging.basicConfig(level=settings.log_level.upper())
@@ -64,6 +64,7 @@ app = create_app()
 def main() -> None:
 	import uvicorn
 
+	log_auth_mode()
 	uvicorn.run(app, host=settings.mcp_host, port=settings.mcp_port)
 
 

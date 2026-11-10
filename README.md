@@ -100,8 +100,9 @@ After editing `.env`, restart to pick it up: `docker compose up -d`
 
 This server speaks **streamable HTTP** at `http://localhost:8600/mcp`. Clients
 that support HTTP/remote MCP connect to that URL directly; stdio-only clients
-need the `mcp-remote` bridge (shown below). No auth token is required — client
-auth is not enforced by this server.
+need the `mcp-remote` bridge (shown below). When the server runs with
+`MCP_AUTH_TOKENS`, every client sends `Authorization: Bearer <token>`; without
+tokens the server accepts every client (and says so in its log).
 
 **Claude Code:**
 ```bash
@@ -155,7 +156,8 @@ Uncomment the `networks` block in `docker-compose.yaml`, verify the network name
 | `VISION4NX_API_KEY` | — (required) | Service access token (issued by Inteliscience — info@inteliscience.net) |
 | `RETRIEVAL_CANDIDATE_POOL` | `40` | Chunks retrieved per collection before reranking. Sent as the API's `k`; `max_results` is sent as `k_reranker` and bounds what comes back. Only bites on instances with hybrid search + a reranker configured |
 | `MCP_HOST` / `MCP_PORT` | `0.0.0.0` / `8600` | Server bind |
-| `MCP_AUTH_TOKEN` | empty | Reserved for future client auth — currently ignored |
+| `MCP_AUTH_TOKENS` | empty | Client auth: comma-separated bearer tokens, one per customer (the Vision4NX Platform licence carries the customer's token). Empty = open; `/health` is always open |
+| `MCP_AUTH_TOKEN` | empty | Single-token form of the same setting, kept for existing deployments |
 | `LOG_LEVEL` | `INFO` | Logging level |
 
 ## Tests

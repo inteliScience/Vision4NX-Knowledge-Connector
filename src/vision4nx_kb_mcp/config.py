@@ -21,8 +21,10 @@ class Settings(BaseSettings):
 	mcp_host: str = "0.0.0.0"
 	mcp_port: int = 8600
 
-	# reserved for the future real auth implementation; the stub ignores it
-	mcp_auth_token: str = ""
+	# client auth: bearer tokens the MCP clients must send (comma-separated, one per
+	# customer; the Vision4NX Platform licence carries the customer's token). Empty = open.
+	mcp_auth_tokens: str = ""
+	mcp_auth_token: str = ""  # single-token form, kept for existing deployments
 
 	log_level: str = "INFO"
 
